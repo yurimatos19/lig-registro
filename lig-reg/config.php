@@ -1,9 +1,9 @@
 <?php
   include_once('include/Database.php');
-  define('SS_DB_NAME', 'resumo_diario');
-  define('SS_DB_USER', 'adminer');
-  define('SS_DB_PASSWORD', '@Andiamironman1');
-  define('SS_DB_HOST', '10.0.1.36');
+  define('SS_DB_NAME', '');
+  define('SS_DB_USER', '');
+  define('SS_DB_PASSWORD', '');
+  define('SS_DB_HOST', '');
  
   $dsn  =   "mysql:dbname=".SS_DB_NAME.";host=".SS_DB_HOST."";
   $pdo  =   "";
