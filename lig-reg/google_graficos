@@ -1,0 +1,303 @@
+<?php 
+	$data1 = (isset($_POST['dia'])) ? $_POST['dia'] : date("01/m/Y");
+    $data2 = (isset($_POST['dia'])) ? $_POST['dia'] : date("t/m/Y");
+    $mcod_comprador  = (isset($_GET['comprador'])) ? $_GET['comprador'] : '';  
+   
+    $refresh_params = (isset($_POST['dia'])) ? "?comprador={$mcod_comprador}&data1={$dia}&data2={$dia}" : "";
+
+    global $grafico,$mnome_comprador;
+    global $mvalor1,$mvalor2,$mvalor3,$mvalor4,$mvalor5,$mvalor6,$mvalor7,$mvalor8,$mvalor9,$mvalor10;
+    global $mvalor11,$mvalor12,$mvalor13,$mvalor14,$mvalor15,$mvalor16,$mvalor17,$mvalor18,$mvalor19,$mvalor20;
+    global $mvalor21,$mvalor22,$mvalor23,$mvalor24;
+
+    global $mnome1,$mnome2,$mnome3,$mnome4,$mnome5,$mnome6,$mnome7,$mnome8,$mnome9,$mnome10,$mnome11,$mnome12,$mnome13,$mnome14,$mnome15;
+
+//    include "config.php"; // Conecta ao banco de dados
+  include "mysqlconecta_yuri.php"; // Conecta ao banco de dados
+   include "mysqlexecuta_yuri.php"; // Executa a cláusula SQL
+?>
+
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
+    <title>Estoque Compras</title>
+    <link href="./financeiro/css/estilo.css" rel="stylesheet">
+    <link href="./css/estilo.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://kit.fontawesome.com/e8c56a4735.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" language="javascript" src="./js/jquery-2.1.3.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+   <script>
+        /* Mascata Data */
+        function mascara(data){ 
+            if(data.value.length == 2)
+            data.value = data.value + '/';  //quando o campo já tiver 2 caracteres (2 números) o script irá inserir mais uma barra, fechando assim o primeiro campo da data.
+
+            if(data.value.length == 5)
+            data.value = data.value + '/'; //quando o campo já tiver 5 caracteres (2 números + 1 barra + 2 números) o script irá inserir mais uma barra, fechando assim o segundo campo da data.  
+        }
+
+   </script>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+  </script>
+
+</head>
+
+<body>
+
+<div class="container-top">
+    <section class="filtro-data">
+        <form method="get" action="google_graficos.php?data1=$data1&data2=data2&comprador=001">
+            <table>
+                <tr>
+                    <td id="col1">
+                        <p style="text-align: center;">
+                            Período <input onkeypress="mascara(this)" type="text" SIZE="9"  name="data1" value="<?php echo $data1?>"></input>
+                                <input onkeypress="mascara(this)" type="text" SIZE="9"  name="data2" value="<?php echo $data2?>"></input>
+                                
+                                <span>
+                                <?php 
+                                echo '<select size="1" name="comprador">';
+                                $sql = "SELECT DISTINCT P.problemas FROM problema P ORDER BY P.PROBLEMAS";
+
+                                $res = mysqlexecuta($id,$sql);
+                                while ($row = mysqli_fetch_array($res)) 
+                                {
+                                    $mproblema = $row[0];
+
+                            
+                                          
+                                        echo "<option value={$row[0]}>{$mproblema}</option>\n";
+                                  
+                                }
+                                echo '</select>';
+                            ?>
+                            </span>
+
+                            <input type="submit" id="submit" name="submit" value="Exibir" ></input>
+                                    
+                        </p>
+                    </td>
+                </tr>   
+            </table> 
+        </form>  
+    </section>
+</div>
+
+<div class="maincontainer">
+
+    <div class="containerright">
+        <div class="titlebox">
+            <i class="fa-solid fa-calendar-check"></i>
+            <h1>Histórico de Problemas por M&ecirc;s</h1>
+        </div>
+
+        <div id="containerchart" class="containerchart">        
+
+          <div id="chart"></div>
+        </div>                 
+    </div>
+</div>
+
+<?php
+//
+// Faz a pesquisa no SQL de acordo com o intervalo de datas digitadas
+//
+// estas variáveis têm que ser definidas como globais, pois passam do PHP para o javascript
+//
+   $mvalor1 = 0; $mvalor2 = 0; $mvalor3 = 0; $mvalor4 = 0; $mvalor5 = 0; $mvalor6 = 0;
+   $mvalor7 = 0; $mvalor8 = 0; $mvalor9 = 0; $mvalor10= 0; $mvalor11= 0; $mvalor12= 0;
+   $mvalor13= 0; $mvalor14= 0; $mvalor15= 0; $mvalor16= 0; $mvalor17= 0; $mvalor18= 0;
+   $mvalor19= 0; $mvalor20= 0; $mvalor21= 0; $mvalor22= 0;
+
+   $mnome1 = $mnome2 = $mnome3 = $mnome4 = $mnome5 = $mnome6 = $mnome7 = $mnome8 = $mnome9 = $mnome10= $mnome11= $mnome12= $mnome13 =$mnome14 =$mnome15 ='';
+
+	$sql = "SELECT problemas, MOD(HOUR(SUM(TIMEDIFF(fim,inicio))), 24) AS total from problema  group by problemas ORDER BY total DESC ";
+  $res = mysqlexecuta($id,$sql);
+  $mvez = 1;
+  while ($row = mysqli_fetch_array($res)) 
+  {
+   switch ($mvez) 
+	  {  
+        case 1: $mvalor1 = $row[1];
+                   $mnome1  = $row[0];
+		        break;
+        case 2: $mvalor2 = $row[1];
+                   $mnome2  = $row[0];
+		        break;
+        case 3: $mvalor3 = $row[1];
+                   $mnome3 = $row[0];
+		        break;
+        case 4: $mvalor4 = $row[1];
+                   $mnome4 = $row[0];
+		        break;
+        case 5: $mvalor5 = $row[1];
+                   $mnome5 = $row[0];
+		        break;
+        case 6: $mvalor6 = $row[1];
+                  $mnome6 = $row[0];
+            break;
+        case 7: $mvalor7 = $row[1];
+                  $mnome7 = $row[0];
+		        break;
+        case 8: $mvalor8 = $row[1];
+                    $mnome8 = $row[0];
+            break;
+        case 9: $mvalor9 = $row[1];
+                    $mnome9 = $row[0];
+		        break;
+        case 10: $mvalor10 = $row[1];
+                    $mnome10 = $row[0];
+		        break;
+        case 11: $mvalor11 = $row[1];
+                   $mnome11 = $row[0];
+		        break;
+        case 12: $mvalor12 = $row[1];
+                  $mnome12 = $row[0];
+		        break;
+        case 13: $mvalor13 = $row[1];
+                  $mnome13 = $row[0];
+            break;
+        case 14: $mvalor14 = $row[1];
+                 $mnome14 = $row[0];
+            break;
+        case 14: $mvalor15 = $row[1];
+                 $mnome15 = $row[0];
+       break;
+	  }
+    $mvez++;  // &mvez = &mvez +1; 
+  } // fim do while
+?>
+
+</body>
+</html>
+
+<script>
+    $(".animated-progress span").each(function () {
+    $(this).animate(
+        {
+        width: $(this).attr("data-progress") + "%",
+        },
+        1000
+    );
+    $(this).text($(this).attr("data-progress") + "%");
+    });
+</script>
+
+<script language=javascript> 
+
+/**
+* Abre popup centralizado.
+* url - local da página pra exibição no popup
+* w - width largura do popup
+* h - height  altura do poup
+*/
+function abrirPopup(url,w,h) {
+var newW = w + 100;
+var newH = h + 100;
+var left = (screen.width-newW)/2;
+var top = (screen.height-newH)/2;
+var newwindow = window.open(url, 'name10', 'width='+newW+',height='+newH+',left='+left+',top='+top);
+newwindow.resizeTo(newW, newH);
+ 
+//posiciona o popup no centro da tela
+newwindow.moveTo(left, top);
+newwindow.focus();
+return false;
+}
+
+</script> 
+
+
+<script>
+//          data: [2500, 9700,3200, 5500, 4500,6584, 6530,3530, 1600, 7580,4502, 3520]
+/*Gráfico Histórico do custo de estoque por mês*/
+<?php $mtemp = "data: [$mvalor1,$mvalor2,$mvalor3,$mvalor4,$mvalor5,$mvalor6,$mvalor7,$mvalor8,$mvalor9,$mvalor10,$mvalor11,$mvalor12,$mvalor13,$mvalor14]";?>
+  var options = {
+          series: [{
+          name: 'Valor:',
+          <?php echo $mtemp; ?>
+        }],
+          chart: {
+          height: 350,
+          type: 'bar',
+        },
+        plotOptions: {
+          bar: {
+            borderRadius: 10,
+            dataLabels: {
+              position: 'top', // top, center, bottom
+            },
+          }
+        },
+        dataLabels: {
+          enabled: true,
+          formatter: function (val) {
+            return " " + val;
+          },
+          offsetY: -20,
+          style: {
+            fontSize: '12px',
+            colors: ["#304758"]
+          }
+        },
+        
+        xaxis: {
+          categories: ["<?php echo $mnome1; ?>", "<?php echo $mnome2; ?>", "<?php echo $mnome3; ?>", "<?php echo $mnome4; ?>", "<?php echo $mnome5; ?>", "<?php echo $mnome6; ?>", "<?php echo $mnome7; ?>", "<?php echo $mnome8; ?>", "<?php echo $mnome9; ?>", "<?php echo $mnome10; ?>", "<?php echo $mnome11; ?>", "<?php echo $mnome12; ?>", "<?php echo $mnome13; ?>", "<?php echo $mnome14; ?>"],
+          position: 'bottom',
+          axisBorder: {
+            show: true
+          },
+          axisTicks: {
+            show: false
+          },
+          crosshairs: {
+            fill: {
+              type: 'gradient',
+              gradient: {
+                colorFrom: '#F6931C',
+                colorTo: '#F6931C',
+                stops: [0, 100],
+                opacityFrom: 0.4,
+                opacityTo: 0.5,
+              }
+            }
+          },
+          tooltip: {
+            enabled: false,
+          }
+        },
+        yaxis: {
+          axisBorder: {
+            show: false
+          },
+          axisTicks: {
+            show: false,
+          },
+          labels: {
+            show: false,
+            formatter: function (val) {
+              return "" + val;
+            }
+          }
+        
+        },
+        title: {
+          text: '',
+          floating: true,
+          offsetY: 330,
+          align: 'bottom',
+          style: {
+            color: '#444'
+          }
+        }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+</script>
+<a href="add-users.php">adicione problemas</a>
+<a href="browser-users.php">busque o problema</a>
